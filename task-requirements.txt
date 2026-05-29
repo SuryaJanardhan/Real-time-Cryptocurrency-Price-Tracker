@@ -1,0 +1,214 @@
+Objective
+Build a responsive, high-performance real-time dashboard displaying cryptocurrency prices and historical data using WebSockets for live updates. This project will challenge you to master WebSocket client integration, implement reactive state management for streaming data, and develop engaging real-time data visualizations. You will gain deep expertise in handling continuous data streams, optimizing UI updates for performance, and ensuring a resilient user experience in dynamic environments. The final dashboard will serve as a compelling portfolio piece demonstrating your ability to build sophisticated, interactive, and data-driven frontend applications suitable for high-demand remote roles.
+
+Description
+Background
+In today's fast-paced financial markets, real-time data is paramount for investors, traders, and cryptocurrency enthusiasts. The volatile nature of digital assets demands instant access to price movements, market changes, and historical trends to make informed decisions. Existing platforms often struggle with delivering truly live, performant, and reliable updates without overwhelming the user or consuming excessive resources. This task aims to address this challenge by developing a sophisticated, real-time cryptocurrency price tracker dashboard. This application will empower users with up-to-the-second market insights and robust historical data visualization, setting a new standard for user-centric financial dashboards. Successfully completing this project will not only showcase your ability to handle complex data streams but also demonstrate your keen eye for performance, user experience, and robust architecture, positioning you for high-paying roles in dynamic tech environments.
+
+Implementation Guidelines
+Frontend Architecture
+Adopt a modular, component-based architecture for your frontend application, preferably using React. Strive for a clear separation of concerns, ensuring that presentational components are responsible solely for rendering UI based on props, while container components or custom hooks manage state and data fetching. This distinction enhances reusability, simplifies testing, and improves overall maintainability. Consider organizing your codebase into logical directories such as components, services, store, hooks, and utils to promote a clean and scalable structure. Architectural decisions should prioritize readability and future extensibility.
+
+State Management
+For handling the continuous flow of real-time data from WebSockets and managing application-wide UI states, a reactive state management pattern is essential. A lightweight, performant, and developer-friendly global state management library like Zustand is highly recommended for managing live cryptocurrency prices, the currently selected cryptocurrency for detailed charts, and other global UI states (e.g., loading indicators, error messages). Ensure that all state updates are immutable to prevent unintended side effects and simplify debugging. Employ selectors to efficiently retrieve specific pieces of state, minimizing unnecessary component re-renders. Thoughtfully determine what state belongs globally versus locally to a component to optimize performance and prevent 'prop drilling'.
+
+Data Fetching and Real-time Updates
+Utilize the native WebSocket API built into modern browsers or a well-regarded client-side WebSocket library to establish and manage the real-time connection for price updates. Implement a resilient connection management strategy that includes automatic reconnection with an exponential backoff mechanism to handle temporary disconnections gracefully. Ensure proper cleanup of WebSocket connections when components unmount to prevent memory leaks. For fetching historical data, use the standard fetch API or a library like Axios. Implement a robust client-side caching mechanism (e.g., an in-memory Map with time-based expiry, localStorage, or IndexedDB for larger datasets) for historical price data to minimize redundant network requests and significantly improve perceived performance, especially when users frequently switch time ranges or cryptocurrencies. Implement comprehensive error handling for both WebSocket and REST API interactions, providing clear user feedback without disrupting the application.
+
+UI/UX Design and Responsiveness
+Prioritize a clean, intuitive, and visually consistent user interface that provides a frictionless experience. Adhere to modern design principles for typography, color palette, spacing, and iconography. Implement a mobile-first responsive design strategy, ensuring that the dashboard layout, component sizing, and interactive elements adapt seamlessly across various screen sizes (mobile, tablet, desktop). Utilize CSS Media Queries or a responsive CSS framework (e.g., Tailwind CSS, Bootstrap) to achieve fluid and adaptable layouts. Provide clear visual feedback for user interactions (e.g., hover states, active states) and real-time data changes (e.g., subtle price movement animations, color changes for positive/negative shifts). The dashboard should be easy to navigate and understand, even for users new to cryptocurrency.
+
+Performance Optimizations
+Given the high-frequency nature of real-time data, performance is a critical aspect of this task. Employ React's built-in performance optimization features such as React.memo for functional components, useCallback for memoizing callback functions, and useMemo for memoizing computationally expensive values to prevent unnecessary re-renders. Strategically manage UI updates to avoid blocking the main thread, especially during rapid price changes. For charting components, leverage the charting library's performance features (e.g., WebGL rendering if available, efficient data updates). If the list of cryptocurrencies becomes very long, consider techniques like 'list virtualization' or 'windowing' to render only visible items, though for 5-10 items, standard rendering should suffice. Implement a client-side debounce or throttle mechanism for historical data API calls if a user rapidly changes selection or time ranges, ensuring API rate limits are respected.
+
+Accessibility (A11y)
+Ensure the application is accessible to all users, including those with disabilities, aiming for WCAG 2.1 AA compliance where applicable. Utilize semantic HTML5 elements (e.g., nav, main, aside, button, article) to convey structure and meaning. Implement appropriate ARIA attributes for custom interactive elements (e.g., custom dropdowns, sliders), dynamic content updates (e.g., aria-live regions for real-time price changes), and form controls to enhance screen reader compatibility. Guarantee full keyboard navigability for all interactive components, ensuring logical tab order and clear focus indicators. Pay meticulous attention to color contrast ratios to ensure text and interactive elements are legible against their backgrounds.
+
+Testing Strategy
+Develop a comprehensive testing strategy that includes both unit and integration tests. Write unit tests for isolated logic, such as utility functions, custom hooks, the WebSocket service logic, and individual Zustand store actions and selectors. Utilize testing libraries like Jest for test runner functionality and React Testing Library for effectively testing React components from a user's perspective, focusing on behavior rather than implementation details. Aim for at least 70% code coverage on core business logic, services, and complex custom hooks to ensure reliability and maintainability. Consider mocking API calls and WebSocket connections during testing to ensure tests are fast, deterministic, and isolated.
+
+Containerization
+Leverage Docker to containerize your frontend application. This approach guarantees a consistent development, testing, and deployment environment, eliminating 'it works on my machine' issues. Implement a multi-stage Dockerfile to create optimized production images: the first stage for building the React application, and a second, leaner stage (e.g., using Nginx Alpine) for serving the static assets. This significantly reduces image size and improves security by not including development dependencies in the final image. Ensure that environment variables for API URLs and WebSocket endpoints are properly managed and injected at runtime, not hardcoded into the build.
+
+Implementation Details
+This task is divided into three main phases, each building upon the previous one. Each phase includes granular steps to guide your implementation, ensuring a structured approach and adherence to best practices.
+
+Phase 1: Setup and Basic Real-time Display (Days 1-7)
+Objective: Initialize the project, integrate the WebSocket client, and display basic real-time cryptocurrency prices.
+
+Step 1.1: Project Setup and Core Structure
+Initialize a new React/TypeScript project using create-react-app with --template typescript or npm create vite@latest my-crypto-dashboard -- --template react-ts. This sets up a robust development environment.
+Install essential dependencies: npm install zustand react-chartjs-2 chart.js date-fns (or a similar date utility for chart axis formatting). If you prefer another charting library or state management, you are free to choose, but ensure they are well-documented.
+Establish a clean project folder structure: src/App.tsx, src/index.tsx, src/components/ (for UI components), src/services/ (for API and WebSocket logic), src/store/ (for Zustand store), src/hooks/ (for custom React hooks), src/utils/ (for utility functions), and src/styles/ (for global styles).
+Set up a tsconfig.json for robust type-checking and prettier / eslint for code formatting and linting.
+Step 1.2: WebSocket Client Integration
+Create a WebSocketService.ts file within src/services/ to encapsulate all WebSocket connection logic. This service will manage the connection lifecycle (connect, reconnect, disconnect) and expose an observable or a callback mechanism for consuming incoming messages.
+// src/services/WebSocketService.ts
+import { EventEmitter } from 'events'; // Can use native EventTarget or custom event system
+
+interface CryptoMessage { symbol: string; price: number; /* ... other real-time fields */ }
+
+class WebSocketService extends EventEmitter {
+    private ws: WebSocket | null = null;
+    private url: string;
+    private reconnectAttempts: number = 0;
+    private maxReconnectAttempts: number = 10;
+    private reconnectIntervalMs: number = 1000;
+    private isConnected: boolean = false;
+
+    constructor(url: string) { super(); this.url = url; }
+
+    public connect(): void; // Establishes connection, handles onopen, onmessage, onerror, onclose
+    public disconnect(): void; // Closes connection cleanly
+    private setupEventListeners(): void; // Internal: adds event listeners to this.ws
+    private attemptReconnect(): void; // Internal: handles reconnection logic with backoff
+    public subscribeToMessages(callback: (data: CryptoMessage) => void): () => void; // Provides a way for components/store to listen
+}
+export const wsService = new WebSocketService('wss://stream.binance.com:9443/ws/!miniTicker@arr'); // Use a public stream or mock
+Implement logic within WebSocketService to listen for onmessage events, parse incoming JSON data (which often includes symbol, price, 24hChange, volume fields), and emit these updates through an event emitter or callback function.
+Crucially, implement robust error handling (onerror) and reconnection logic (onclose) with an exponential backoff strategy to ensure the application remains resilient to network fluctuations. Define a maximum number of reconnection attempts before giving up.
+Step 1.3: Zustand Store for Real-time Data
+Create cryptoStore.ts within src/store/ to manage the real-time cryptocurrency price data using Zustand. This store will hold an object mapping crypto symbols to their CryptoPrice objects.
+// src/store/cryptoStore.ts
+import { create } from 'zustand';
+
+interface CryptoPrice {
+    symbol: string;
+    price: number;
+    change24h: number;
+    volume24h: number;
+    // Add more fields as needed, e.g., lastUpdateTimestamp
+}
+
+interface CryptoState {
+    prices: Record<string, CryptoPrice>; // e.g., { 'BTCUSDT': { ... }, 'ETHUSDT': { ... } }
+    loading: boolean;
+    error: string | null;
+    selectedCryptoId: string | null;
+    addOrUpdatePrice: (priceData: CryptoPrice) => void;
+    setLoading: (isLoading: boolean) => void;
+    setError: (errorMessage: string | null) => void;
+    setSelectedCryptoId: (id: string | null) => void;
+}
+
+export const useCryptoStore = create<CryptoState>((set) => ({
+    prices: {},
+    loading: true,
+    error: null,
+    selectedCryptoId: null,
+    addOrUpdatePrice: (priceData) => set((state) => ({
+        prices: { ...state.prices, [priceData.symbol]: priceData }
+    })), 
+    setLoading: (isLoading) => set({ loading: isLoading }),
+    setError: (errorMessage) => set({ error: errorMessage }),
+    setSelectedCryptoId: (id) => set({ selectedCryptoId: id })
+}));
+Subscribe the cryptoStore to the WebSocketService messages. When a message is received, update the prices state in the store. Ensure that addOrUpdatePrice performs an immutable update to the prices object.
+Implement a React useEffect hook in a top-level component (e.g., App.tsx or Dashboard.tsx) to initialize the WebSocketService connection and subscribe to its messages on component mount, and to disconnect/clean up on unmount.
+Step 1.4: Basic Cryptocurrency List Display Component
+Create CryptoCard.tsx within src/components/ to display a single cryptocurrency's real-time data (symbol, current price, 24h change, volume). This component should receive its data as props from its parent.
+Create CryptoList.tsx within src/components/ to fetch data from the useCryptoStore and render multiple CryptoCard components. Ensure each CryptoCard has a unique key prop for efficient list rendering.
+Implement basic styling for the cards and list. Focus on readability and clear presentation of data.
+Add a click handler to CryptoCard to set the selectedCryptoId in the useCryptoStore, which will trigger the display of its historical chart in a later phase.
+Phase 2: Historical Data, Charts, and Responsiveness (Days 8-14)
+Objective: Integrate historical data fetching, implement interactive charting, and ensure the dashboard is fully responsive across devices.
+
+Step 2.1: REST API Service for Historical Data
+Create CryptoApiService.ts within src/services/ to handle fetching historical price data from a public REST API (e.g., CoinGecko's market_chart endpoint). This service should abstract API calls, including constructing URLs and handling basic error responses.
+// src/services/CryptoApiService.ts
+interface HistoricalDataPoint { timestamp: number; price: number; }
+interface MarketChartResponse { prices: [number, number][]; /* ... other data */ }
+
+class CryptoApiService {
+    private baseUrl: string;
+    private cache = new Map<string, { data: HistoricalDataPoint[]; timestamp: number }>();
+    private cacheDurationMs: number = 5 * 60 * 1000; // 5 minutes
+    private requestQueue: Map<string, Promise<HistoricalDataPoint[]>> = new Map(); // For debouncing
+
+    constructor(baseUrl: string) { this.baseUrl = baseUrl; }
+
+    public async fetchHistoricalData(coinId: string, days: number): Promise<HistoricalDataPoint[]> { /* ... implementation with caching and rate limiting ... */ }
+    private async fetchFromApi(coinId: string, days: number): Promise<HistoricalDataPoint[]> { /* ... actual API call ... */ }
+    private debounceFetchHistoricalData(coinId: string, days: number): Promise<HistoricalDataPoint[]>; // Method for debouncing API calls
+}
+export const cryptoApiService = new CryptoApiService(process.env.REACT_APP_REST_API_URL || 'https://api.coingecko.com/api/v3');
+Implement a useHistoricalData custom hook within src/hooks/ that utilizes CryptoApiService to fetch and manage the state of historical data for the currently selected cryptocurrency. This hook should return data, loading status, and error state.
+Integrate a client-side caching mechanism (e.g., Map in CryptoApiService) to store fetched historical data, preventing redundant API calls for the same time range/crypto within a set expiry period (e.g., 5-10 minutes).
+Add loading and error states to the useHistoricalData hook to provide visual feedback to the user during data fetching.
+Step 2.2: Interactive Chart Integration
+Create HistoricalChart.tsx within src/components/ to render an interactive line chart. This component should accept historical data (an array of HistoricalDataPoint objects) and chart configuration options as props. Use react-chartjs-2 with chart.js or a similar charting library.
+Implement controls (e.g., buttons or a dropdown) to allow users to switch between different time ranges for the chart (e.g., '1 Hour', '24 Hours', '7 Days'). These controls should trigger new historical data fetches via the useHistoricalData hook.
+Ensure the chart dynamically updates when new historical data is received or the time range changes. Pay attention to clear axis labels, tooltips, and responsive sizing of the chart.
+Step 2.3: Responsive Design Implementation
+Apply CSS media queries in your stylesheets (e.g., src/styles/App.css or component-specific CSS modules) to ensure the dashboard layout and components adapt gracefully to different screen sizes.
+Focus on flexible grid layouts (Flexbox or CSS Grid), fluid typography, and responsive image handling. For mobile views, components might stack vertically; for desktop, they could be side-by-side.
+Test your layout rigorously using browser developer tools' responsive mode or by resizing the browser window, ensuring no content overflow, incorrect scaling, or broken layouts.
+Phase 3: Advanced Features, Testing, and Deployment (Days 15-21)
+Objective: Enhance UI with advanced features, implement comprehensive testing, and prepare the application for containerized deployment.
+
+Step 3.1: UI Enhancements and Accessibility
+Implement subtle visual feedback for real-time price changes on CryptoCard components: for example, a brief green background flash for an upward price movement and a red flash for a downward movement, or up/down arrow icons. This should be non-distracting and performant.
+Ensure all interactive elements, such as the time range selection buttons for charts and the cryptocurrency cards themselves, are fully keyboard navigable. Users should be able to tab through elements and activate them using the Enter or Space key.
+Add appropriate ARIA attributes (e.g., aria-label, aria-live, role) to buttons, links, dynamic content areas (like price updates), and custom form controls to improve screen reader accessibility. For example, use aria-live="polite" for price update areas.
+Display the 24-hour price change as a percentage to provide quick context to users.
+Step 3.2: Robust Error Handling and Edge Cases
+Implement a global error boundary using React's ErrorBoundary component to gracefully catch and display errors within the component tree, preventing the entire application from crashing. This should show a user-friendly fallback UI.
+Enhance the WebSocketService and CryptoApiService to parse and handle specific API error responses (e.g., HTTP status codes like 404, 500, or WebSocket close codes). Display tailored user-friendly messages for different error types.
+Handle edge cases where a specific cryptocurrency's data might be temporarily unavailable from the WebSocket stream or the REST API. Display
+Core Requirements
+The dashboard must display a list of at least 5 major cryptocurrencies (e.g., BTC, ETH, SOL, ADA, XRP) with their current price, 24-hour price change percentage, and 24-hour trading volume.
+Real-time price updates for each cryptocurrency must be received and displayed via a WebSocket connection. Updates must be visible on the dashboard within 1 second of receipt.
+An interactive historical price chart (e.g., 1-hour, 24-hour, 7-day views) for at least one selected cryptocurrency must be implemented, powered by a REST API.
+The dashboard must be fully responsive, displaying optimally on desktop (1440px+), tablet (768-1439px), and mobile (375-767px) screen sizes, adapting layout and component visibility as necessary.
+Implement robust error handling for WebSocket connection failures and REST API errors, displaying user-friendly messages within the UI without crashing the application.
+Clear loading indicators must be shown for initial data fetch and when switching historical chart ranges, improving user experience.
+Users must be able to select any cryptocurrency from the displayed list to view its detailed historical chart, with the chart updating dynamically.
+All interactive elements (buttons, selectors, navigation) must be keyboard navigable and possess appropriate ARIA attributes for accessibility, targeting WCAG 2.1 AA compliance where applicable.
+The application must employ a performant rendering strategy (e.g., memoization, efficient state updates) to minimize unnecessary re-renders and maintain a smooth 60 frames per second (fps), especially during rapid price updates.
+Historical data fetched from the REST API must be cached client-side (e.g., using localStorage, IndexedDB, or a simple in-memory cache with expiry) to reduce redundant API calls and improve performance.
+Implement a clear visual distinction for real-time price changes (e.g., green for positive change, red for negative change) with a subtle, non-distracting animation on update.
+The project must include basic unit tests for key components, custom hooks, and WebSocket client logic, achieving at least 70% test coverage for core business logic.
+A Dockerfile for the frontend application must be provided, enabling the application to be built and run in a containerized environment using a multi-stage build process for optimization.
+All API calls for historical data must utilize a public cryptocurrency REST API (e.g., CoinGecko or a similar service) or a well-documented mock API.
+The WebSocket client logic must gracefully handle connection/reconnection attempts, parse incoming JSON messages, and log errors appropriately to the console.
+The dashboard must include a clear and descriptive header with the application title.
+The overall design should be clean, modern, and follow consistent UI/UX principles, demonstrating attention to detail and aesthetic quality.
+The application must correctly display a 'No Data Available' or similar message for cryptocurrencies for which historical data cannot be fetched.
+Implement a client-side rate-limiting mechanism (e.g., debouncing or throttling) for historical data API calls to avoid hitting external API limits, especially when users rapidly change chart views.
+Implementation Guidelines
+Frontend Architecture
+Adopt a modular, component-based architecture for the frontend application. Clearly separate concerns: presentational components should focus solely on rendering UI, while container components or hooks manage state and data fetching. Utilize custom hooks for reusable logic (e.g., useWebSocket, useCryptoPrices, useHistoricalChartData). This approach promotes reusability, testability, and maintainability. Consider creating a dedicated services directory for API interactions and WebSocket management to centralize network logic.
+
+State Management
+For real-time data streaming, implement a reactive state management pattern. A global state management library like Zustand is highly recommended for managing application-wide state (e.g., live crypto prices, selected cryptocurrency). Ensure that state updates are immutable to prevent unexpected side effects and simplify debugging. Carefully consider what state needs to be global versus local to a component to avoid unnecessary re-renders. Utilize selectors to efficiently retrieve specific pieces of state.
+
+Data Fetching and Real-time Updates
+Employ the native WebSocket API or a lightweight WebSocket client library for handling real-time price updates. Implement a robust connection management strategy, including exponential backoff for reconnection attempts and proper cleanup on component unmount to prevent memory leaks. For historical data, use the fetch API or a library like Axios. Implement a client-side caching mechanism (e.g., an in-memory Map or localStorage) for historical data to minimize redundant network requests and improve perceived performance. Include proper error handling for both WebSocket and REST API interactions.
+
+UI/UX Design and Responsiveness
+Prioritize a clean, intuitive, and visually consistent user interface. Follow modern design principles for typography, color palette, and spacing. Implement a mobile-first responsive design strategy, ensuring the dashboard layout, component sizing, and interactions adapt seamlessly across various screen sizes (mobile, tablet, desktop) using CSS Media Queries or a responsive design framework. Emphasize clear visual feedback for user interactions and data changes.
+
+Performance Optimizations
+Given the real-time nature, performance is critical. Utilize React's performance optimization features such as React.memo, useCallback, and useMemo to prevent unnecessary re-renders of components. Optimize rendering of charts and lists, potentially using virtualization for very long lists if initial requirements expand beyond a few cryptocurrencies. Debounce or throttle API calls for historical data if a user rapidly changes selection or time ranges to prevent hitting rate limits.
+
+Accessibility (A11y)
+Ensure the application is accessible to all users. Use semantic HTML5 elements (e.g., nav, main, aside, button). Implement proper ARIA attributes for custom interactive elements, dynamic content updates (e.g., aria-live regions for price changes), and form controls. Ensure full keyboard navigability for all interactive components. Pay attention to color contrast ratios and provide clear focus indicators.
+
+Testing Strategy
+Implement a combination of unit tests for isolated logic (e.g., utility functions, custom hooks, WebSocket service logic, state management store actions) and basic integration tests for key component interactions. Use a testing library like Jest and React Testing Library to write meaningful and maintainable tests. Aim for high coverage on critical business logic.
+
+Containerization
+Utilize Docker for containerizing the frontend application. This ensures a consistent development and deployment environment. Implement a multi-stage Dockerfile to create optimized production images, separating build-time dependencies from runtime dependencies for smaller image sizes and improved security.
+
+Expected Outcomes
+Upon successful completion, the candidate will deliver a fully functional real-time cryptocurrency dashboard that:
+
+Accurately displays live price data and 24-hour metrics for multiple cryptocurrencies, dynamically updating via WebSocket integration.
+Provides interactive historical price charts for selected cryptocurrencies, leveraging client-side caching for efficient data retrieval.
+Offers a seamless user experience across various devices and screen sizes due to robust responsive design implementation.
+Demonstrates high performance with smooth UI updates, even during rapid real-time data streams, showcasing effective rendering optimizations.
+Gracefully handles network errors, API failures, and WebSocket connection issues, displaying informative messages to the user.
+Is accessible to users relying on keyboard navigation and screen readers, adhering to specified WCAG guidelines through correct ARIA attribute usage and semantic HTML.
+Incorporates a clean, modern, and intuitive user interface that reflects best practices in visual design and user experience.
+Includes a well-structured and maintainable codebase, supported by unit tests and a production-ready Docker deployment configuration.
+Showcases deep understanding of WebSocket protocol, reactive state management patterns, and data visualization techniques in a real-world context.

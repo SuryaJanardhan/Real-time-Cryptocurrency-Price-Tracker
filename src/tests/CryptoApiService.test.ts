@@ -3,52 +3,67 @@ import cryptoApiService from '../services/CryptoApiService';
 
 describe('CryptoApiService', () => {
   beforeEach(() => {
-    // Clear internal cache using reflection or by relying on new fetches
-    // Since cache is private, we can reinstantiate or mock
     vi.restoreAllMocks();
   });
 
-  it('should generate realistic random walk historical data as fallback', async () => {
+  it('should generate realistic random walk historical data as fallback when API fails', async () => {
     const symbol = 'SOLUSDT';
     const livePrice = 150.0;
     
-    // Force a fallback (using an invalid or mock base URL, or letting fetch fail since mock is active in node test environment)
+    // Mock fetch to reject, simulating a network or rate limit failure
+    const fetchSpy = vi.spyOn(global, 'fetch').mockRejectedValue(new Error('Rate Limit Exceeded'));
+    
     const data = await cryptoApiService.fetchHistoricalData(symbol, 1, livePrice);
     
+    expect(fetchSpy).toHaveBeenCalled();
     expect(data).toBeDefined();
     expect(Array.isArray(data)).toBe(true);
-    expect(data.length).toBe(24); // 24 points for 1 day view
+    expect(data.length).toBe(24); // 24 points for 1 day view in mock fallback
     
-    // The final point in the returned series should be close to or match the live price seed
     const lastPoint = data[data.length - 1];
     expect(lastPoint.price).toBeCloseTo(livePrice, 1);
     expect(lastPoint.timestamp).toBeLessThanOrEqual(Date.now());
   });
 
-  it('should generate correct number of points depending on timeframe', async () => {
+  it('should generate correct number of points depending on timeframe in fallback mode', async () => {
+    // Mock fetch to fail
+    vi.spyOn(global, 'fetch').mockRejectedValue(new Error('Offline'));
+
     // 7 Days view
     const data7d = await cryptoApiService.fetchHistoricalData('BTCUSDT', 7, 65000);
-    expect(data7d.length).toBe(168); // 24 hours * 7 days = 168 points
+    expect(data7d.length).toBe(168); // 168 hours for 7 days
 
-    // 1 Hour view (days = 0.0416)
+    // 1 Hour view
     const data1h = await cryptoApiService.fetchHistoricalData('BTCUSDT', 0.0416, 65000);
-    expect(data1h.length).toBe(60); // 60 points (1 minute steps)
+    expect(data1h.length).toBe(60); // 60 points for 1 hour
   });
 
   it('should cache identical requests and return cached results instantly', async () => {
-    const fetchSpy = vi.spyOn(window, 'fetch');
+    // Mock fetch to return a static valid price dataset
+    const mockPrices = [
+      [1700000000000, 3000.0],
+      [1700001000000, 3010.0]
+    ];
     
-    // Execute request once
-    const data1 = await cryptoApiService.fetchHistoricalData('ETHUSDT', 1, 3500);
+    const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async () => ({ prices: mockPrices })
+    } as any);
+    
+    // Execute request once (clearing key ethically by selecting a new symbol variant 'XRPUSDT' or new timeframe to bypass dirty caches)
+    const data1 = await cryptoApiService.fetchHistoricalData('XRPUSDT', 7, 0.50);
     
     // Execute identical request
-    const data2 = await cryptoApiService.fetchHistoricalData('ETHUSDT', 1, 3500);
+    const data2 = await cryptoApiService.fetchHistoricalData('XRPUSDT', 7, 0.50);
     
-    // Identical request should hit cache and yield identical references
+    // Both datasets should be identical
     expect(data1).toEqual(data2);
     
-    // Verify that subsequent call was fetched from local memory rather than hitting external REST APIs
-    // In node environment, fetch might have failed and triggered fallback caching which also works perfectly!
-    expect(data2[data2.length - 1].price).toBe(data1[data1.length - 1].price);
+    // Global fetch should only have been called ONCE due to caching!
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    
+    // The dataset contents should match our static mocked API return
+    expect(data1.length).toBe(2);
+    expect(data1[0].price).toBe(3000.0);
   });
 });

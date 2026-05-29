@@ -54,7 +54,6 @@ export const useCryptoStore = create<CryptoState>((set) => ({
 
   addOrUpdatePrice: (priceData) =>
     set((state) => {
-      const existing = state.prices[priceData.symbol];
       const updatedPrice: CryptoPrice = {
         ...priceData,
         name: coinNames[priceData.symbol] || priceData.symbol.replace('USDT', ''),
@@ -62,7 +61,6 @@ export const useCryptoStore = create<CryptoState>((set) => ({
 
       // Determine if it was all zeroes initially (first load completed)
       const wasAllZero = Object.values(state.prices).every((p) => p.price === 0);
-      const isLoaded = wasAllZero ? false : state.loading;
 
       // Clean up loading state if we now have active price updates
       const newLoading = wasAllZero ? false : state.loading;
@@ -80,12 +78,12 @@ export const useCryptoStore = create<CryptoState>((set) => ({
   setError: (errorMessage) => set({ error: errorMessage }),
   setSelectedCryptoId: (id) => set({ selectedCryptoId: id }),
   setConnectionStatus: (connected, connecting) =>
-    set({
+    set((state) => ({
       isConnected: connected,
       isConnecting: connecting,
       // If we are connected, clear top-level connection errors
-      error: connected ? null : undefined,
-    }),
+      error: connected ? null : state.error,
+    })),
 }));
 
 export default useCryptoStore;

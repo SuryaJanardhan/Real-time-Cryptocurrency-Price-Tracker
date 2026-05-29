@@ -9,10 +9,6 @@ export function useHistoricalData(symbol: string, timeframe: Timeframe) {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   
-  // Obtain the current live price from our Zustand store
-  const livePrice = useCryptoStore(
-    (state) => state.prices[symbol]?.price || 0
-  );
 
   useEffect(() => {
     let active = true;
@@ -32,7 +28,9 @@ export function useHistoricalData(symbol: string, timeframe: Timeframe) {
     // Brief debounce of 250ms to throttle high-frequency toggling
     const delayTimer = setTimeout(async () => {
       try {
-        const result = await cryptoApiService.fetchHistoricalData(symbol, days, livePrice);
+        // Obtain live price directly from store state during execution to prevent high-frequency triggering
+        const currentLivePrice = useCryptoStore.getState().prices[symbol]?.price || 0;
+        const result = await cryptoApiService.fetchHistoricalData(symbol, days, currentLivePrice);
         if (active) {
           setData(result);
           setLoading(false);
@@ -49,7 +47,7 @@ export function useHistoricalData(symbol: string, timeframe: Timeframe) {
       active = false;
       clearTimeout(delayTimer);
     };
-  }, [symbol, timeframe, livePrice]); // livePrice is included to dynamically merge ticks on first seed, but debounced
+  }, [symbol, timeframe]); // livePrice is included to dynamically merge ticks on first seed, but debounced
 
   return { data, loading, error };
 }

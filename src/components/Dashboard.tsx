@@ -1,13 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { 
-  Wifi, 
   WifiOff, 
   RefreshCw, 
   Clock, 
   Activity, 
   DollarSign, 
   Percent, 
-  HelpCircle,
   Cpu
 } from 'lucide-react';
 import useCryptoStore from '../store/cryptoStore';
@@ -36,8 +34,7 @@ export const Dashboard: React.FC = () => {
   // Subscribe to live historical data custom hook
   const { 
     data: historicalData, 
-    loading: chartLoading, 
-    error: chartError 
+    loading: chartLoading
   } = useHistoricalData(selectedCryptoId, timeframe);
 
   // Initialize and manage WebSocket subscriptions
@@ -47,7 +44,15 @@ export const Dashboard: React.FC = () => {
 
     // 2. Subscribe to ticker updates
     const unsubscribeMessages = wsService.subscribeToMessages((msg) => {
-      addOrUpdatePrice(msg);
+      addOrUpdatePrice({
+        symbol: msg.symbol,
+        price: msg.price,
+        change24h: msg.change24h,
+        volume24h: msg.volume24h,
+        high24h: msg.high24h,
+        low24h: msg.low24h,
+        lastUpdated: msg.timestamp
+      });
     });
 
     // 3. Subscribe to connection status changes

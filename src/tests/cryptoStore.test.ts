@@ -3,7 +3,6 @@ import useCryptoStore from '../store/cryptoStore';
 
 describe('useCryptoStore Zustand Store', () => {
   beforeEach(() => {
-    // Reset state before each test if needed
     const store = useCryptoStore.getState();
     store.setSelectedCryptoId('BTCUSDT');
     store.setLoading(true);
@@ -31,7 +30,7 @@ describe('useCryptoStore Zustand Store', () => {
   it('should update connection status correctly', () => {
     const store = useCryptoStore.getState();
     store.setConnectionStatus(true, false);
-    
+
     const state = useCryptoStore.getState();
     expect(state.isConnected).toBe(true);
     expect(state.isConnecting).toBe(false);
@@ -39,7 +38,7 @@ describe('useCryptoStore Zustand Store', () => {
 
   it('should add or update price metrics and toggle loading correctly', () => {
     const store = useCryptoStore.getState();
-    
+
     // Add a real tick
     store.addOrUpdatePrice({
       symbol: 'BTCUSDT',

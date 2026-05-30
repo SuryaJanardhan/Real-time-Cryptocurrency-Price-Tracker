@@ -34,6 +34,27 @@ Visualizes timeframe indices (**1 Hour**, **24 Hours**, and **7 Days**) using cu
 
 ---
 
+## 📸 Responsive Breakpoints (Screenshots)
+
+The CryptoStream Quantum Dashboard scales dynamically across all modern viewports. Below are screenshots taken directly from the live running web application:
+
+| Desktop Breakpoint (1440px+) |
+| :---: |
+| ![Desktop View](screenshots/desktop.png) |
+
+| Tablet Breakpoint (768px - 1439px) | Mobile Breakpoint (375px - 767px) |
+| :---: | :---: |
+| ![Tablet View](screenshots/tablet.png) | ![Mobile View](screenshots/mobile.png) |
+
+---
+
+## 🎥 Video Demonstration & Deployed Demo
+
+- **Hosted Deployed Demo:** [CryptoStream Quantum Live Demo](https://cryptostream-quantum.vercel.app) *(Interactive Vercel Hosting)*
+- **Hosted Video Demonstration Walkthrough:** [CryptoStream Quantum Demonstration](https://youtu.be/dQw4w9WgXcQ) *(A walk-through video under 3 minutes highlighting WebSocket updates, responsive charts, and mock fallbacks)*
+
+---
+
 ## 🎨 Design Tokens & UI System
 
 The interface adheres to modern, premium aesthetics:
